@@ -1,0 +1,52 @@
+<!-- views/user-dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <style>
+    .dashboard {
+      text-align: center;
+      padding: 30px;
+    }
+    .order-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .order-history {
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Welcome, <%= user.name %>!</h1>
+    <p>Order fuel with ease, from the station of your choice.</p>
+    <form action="/user/stations" method="GET">
+      <button class="order-btn">Place a New Order</button>
+    </form>
+
+    <div class="order-history">
+      <h2>Your Past Orders</h2>
+      <% if (orders.length === 0) { %>
+        <p>No orders yet.</p>
+      <% } else { %>
+        <ul>
+          <% orders.forEach(order => { %>
+            <li>
+              <strong><%= order.fuelType %></strong> - <%= order.quantity %>L -
+              <%= order.status %>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

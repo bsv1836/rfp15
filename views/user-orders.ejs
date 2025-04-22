@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Fuel Orders</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f1f4f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .order-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .order-card {
+      border: 1px solid #e0e0e0;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      background-color: #fafafa;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .order-card:hover {
+      transform: scale(1.01);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .order-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #222;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+
+    .status-pending {
+      background-color: #ffe0e0;
+      color: #d00000;
+    }
+
+    .status-in-progress {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-delivered {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .order-details {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .order-details strong {
+      color: #111;
+    }
+
+    .no-orders {
+      text-align: center;
+      font-size: 1rem;
+      color: #777;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="order-container">
+    <h1>Your Fuel Orders</h1>
+
+    <% if (orders.length === 0) { %>
+      <p class="no-orders">🚫 No orders placed yet.</p>
+    <% } else { %>
+      <% orders.forEach(order => { %>
+        <div class="order-card">
+          <div class="order-header">
+            <h3>🛢️ <%= order.fuelType %> - <%= order.quantity %> Liters</h3>
+            <span class="status-badge 
+              <%= order.status === 'Pending' ? 'status-pending' : 
+                   order.status === 'In Progress' ? 'status-in-progress' : 
+                   'status-delivered' %>">
+              <%= order.status %>
+            </span>
+          </div>
+
+          <div class="order-details">
+            <p><strong>Station:</strong> 
+              <%= order.fuelStation && order.fuelStation.managerId ? order.fuelStation.managerId.stationName : "N/A" %>
+            </p>
+            <p><strong>Payment:</strong> 
+              <%= order.paymentMethod === 'Online Payment' ? '💳 Online' : '💵 Cash on Delivery' %>
+            </p>
+            <p><strong>Total:</strong> ₹<%= order.amount.toFixed(2) %></p>
+            <p><strong>Ordered On:</strong> 
+              <%= new Date(order.createdAt).toLocaleDateString() %> 
+              at 
+              <%= new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+            </p>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

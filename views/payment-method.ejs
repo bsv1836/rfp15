@@ -1,0 +1,64 @@
+<!-- views/payment-method.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment Method</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <style>
+    .payment-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    .details {
+      margin: 20px 0;
+      font-size: 1.1rem;
+    }
+    .details strong {
+      display: inline-block;
+      width: 150px;
+    }
+    .method {
+      margin-top: 20px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <h2>Confirm & Choose Payment</h2>
+
+    <div class="details">
+      <p><strong>Fuel Type:</strong> <%= fuelType %></p>
+      <p><strong>Quantity:</strong> <%= quantity %> L</p>
+      <p><strong>Base Price:</strong> ₹<%= basePrice %></p>
+      <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
+      <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
+      <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
+    </div>
+
+    <form action="/user/place-order/<%= stationId %>" method="POST">
+      <input type="hidden" name="fuelType" value="<%= fuelType %>" />
+      <input type="hidden" name="quantity" value="<%= quantity %>" />
+      <input type="hidden" name="totalAmount" value="<%= totalAmount %>" />
+
+      <div class="method">
+        <label><input type="radio" name="paymentMethod" value="Online" required /> Pay Online</label><br />
+        <label><input type="radio" name="paymentMethod" value="COD" required /> Cash on Delivery</label>
+      </div>
+
+      <button type="submit">Confirm Order</button>
+    </form>
+  </div>
+</body>
+</html>

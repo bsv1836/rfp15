@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Registration</title>
+    <link rel="stylesheet" href="/assets/manager-styles.css">
+</head>
+<body>
+    <div class="container-manager">
+        <h2 class="title">Manager Registration</h2>
+        
+        <form id="managerRegisterForm" method="POST" action="/manager/register" enctype="application/x-www-form-urlencoded">
+            <!-- Fuel Station Details -->
+            <div class="section">
+                <h3>Fuel Station Details</h3>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Fuel Station Name:</label>
+                        <input type="text" name="fuelStationName" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Fuel Station Address:</label>
+                        <input type="text" name="fuelStationAddress" required>
+                    </div>
+                </div>
+
+                <!-- Fuel Types as Checkboxes -->
+                <div class="input-group">
+                    <label>Fuel Types Sold:</label>
+                    <div class="fuel-options">
+                        <label><input type="checkbox" name="fuelTypes" value="Petrol"> Petrol</label>
+                        <label><input type="checkbox" name="fuelTypes" value="Diesel"> Diesel</label>
+                        <label><input type="checkbox" name="fuelTypes" value="CNG"> CNG</label>
+                        <label><input type="checkbox" name="fuelTypes" value="Power Petrol"> Power Petrol</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manager Personal Details -->
+            <div class="section">
+                <h3>Manager Personal Details</h3>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Manager Name:</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Mobile Number:</label>
+                        <input type="tel" name="mobile" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Email ID:</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Confirm Password:</label>
+                    <input type="password" id="confirmPassword" name="confirm_password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Register</button>
+        </form>
+        <p>Already registered? <a href="/">Login here</a></p>
+    </div>
+
+    <script src="/assets/manager-register.js"></script>
+</body>
+</html>

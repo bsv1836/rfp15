@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manager Dashboard</title>
+  <link rel="stylesheet" href="/assets/manager-dashboard.css">
+  <script defer src="/assets/manager-dashboard.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="flex">
+    <!-- Sidebar Navigation -->
+    <nav class="fixed top-0 left-0 h-screen w-64 bg-white shadow-lg">
+      <div class="p-6 border-b">
+        <h1 class="text-xl font-bold">FuelDelivery</h1>
+        <p class="text-sm text-gray-500">Station ID: <%= manager._id %></p>
+      </div>
+      <ul class="mt-4">
+        <li class="p-4 hover:bg-gray-200"><a href="#dashboard">Dashboard</a></li>
+        <li class="p-4 hover:bg-gray-200"><a href="#orders">Orders</a></li>
+        <li class="p-4 hover:bg-gray-200"><a href="#inventory">Inventory</a></li>
+        <li class="p-4 hover:bg-gray-200"><a href="#agents">Agents</a></li>
+        <li class="p-4 hover:bg-gray-200"><a href="#profile">Profile</a></li>
+      </ul>
+      <div class="p-4 border-t">
+        <a href="/logout" class="block w-full text-red-600 text-center hover:bg-red-50 py-2">Logout</a>
+      </div>
+      
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-64 p-6">
+      <h1 class="text-2xl font-bold">Manager Dashboard</h1>
+      <p class="text-gray-600">Welcome, <%= manager.name %>!</p>
+
+      <!-- Dashboard Statistics -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <div class="p-6 bg-white rounded-lg shadow">
+          <p>Pending Orders</p>
+          <h3 class="text-2xl font-bold"><%= stats.pending %></h3>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow">
+          <p>Active Deliveries</p>
+          <h3 class="text-2xl font-bold"><%= stats.inProgress %></h3>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow">
+          <p>Available Agents</p>
+          <h3 class="text-2xl font-bold"><%= stats.availableAgents %></h3>
+        </div>
+        <div class="p-6 bg-white rounded-lg shadow">
+          <p>Today's Deliveries</p>
+          <h3 class="text-2xl font-bold"><%= stats.deliveredToday %></h3>
+        </div>
+      </div>
+
+      <!-- Orders Section -->
+      <section id="orders" class="mt-6">
+        <h2 class="text-xl font-semibold">Orders Management</h2>
+        <table class="w-full mt-4 bg-white shadow rounded-lg">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="p-4 text-left">Order ID</th>
+              <th class="p-4 text-left">Customer</th>
+              <th class="p-4 text-left">Fuel Type</th>
+              <th class="p-4 text-left">Quantity</th>
+              <th class="p-4 text-left">Status</th>
+              <th class="p-4 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Inside Orders Table Row -->
+<% orders.forEach(order => { %>
+  <tr class="border-t">
+    <td class="p-4"><%= order._id %></td>
+    <td class="p-4"><%= order.customerName %></td>
+    <td class="p-4"><%= order.fuelType %></td>
+    <td class="p-4"><%= order.quantity %>L</td>
+    <td class="p-4 <%= order.status === 'Pending' ? 'text-yellow-500' : order.status === 'In Progress' ? 'text-blue-500' : 'text-green-500' %>">
+      <%= order.status %>
+    </td>
+    <td class="p-4">
+      <% if (order.status === 'Pending') { %>
+        <form action="/manager/orders/<%= order._id %>/accept" method="POST" style="display:inline-block;">
+          <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Accept</button>
+        </form>
+        <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
+          <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
+        </form>
+      <% } else if (order.status === 'In Progress') { %>
+        <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>In Progress</button>
+      <% } else { %>
+        <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Completed</button>
+      <% } %>
+    </td>
+  </tr>
+<% }); %>
+
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Fuel Inventory Section -->
+      <section id="inventory" class="mt-6">
+        <h2 class="text-xl font-semibold">Fuel Inventory Management</h2>
+        <table class="w-full mt-4 bg-white shadow rounded-lg">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="p-4 text-left">Fuel Type</th>
+              <th class="p-4 text-left">Available Quantity</th>
+              <th class="p-4 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% fuelInventory.forEach(fuel => { %>
+              <tr class="border-t">
+                <td class="p-4"><%= fuel.type %></td>
+                <td class="p-4"><%= fuel.quantity %>L</td>
+                <td class="p-4">
+                  <button class="bg-blue-500 text-white px-3 py-1 rounded">Update</button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Delivery Agents Section -->
+      <section id="agents" class="mt-6">
+        <h2 class="text-xl font-semibold">Delivery Agents</h2>
+        <table class="w-full mt-4 bg-white shadow rounded-lg">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="p-4 text-left">Agent Name</th>
+              <th class="p-4 text-left">Contact</th>
+              <th class="p-4 text-left">Status</th>
+              <th class="p-4 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% agents.forEach(agent => { %>
+              <tr class="border-t">
+                <td class="p-4"><%= agent.name %></td>
+                <td class="p-4"><%= agent.contact %></td>
+                <td class="p-4 <%= agent.status === 'Available' ? 'text-green-500' : agent.status === 'Not Available' ? 'text-red-500' : 'text-blue-500' %>"><%= agent.status %></td>
+                <td class="p-4">
+                  <% if (agent.status === 'Available') { %>
+                    <button class="bg-yellow-500 text-white px-3 py-1 rounded">Assign</button>
+                  <% } else { %>
+                    <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Assign</button>
+                  <% } %>
+                  <button class="bg-red-500 text-white px-3 py-1 rounded">Remove</button>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Profile Settings Section -->
+      <section id="profile" class="mt-6">
+        <h2 class="text-xl font-semibold">Profile Settings</h2>
+        <div class="p-6 bg-white shadow rounded-lg mt-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="font-semibold">Manager Name:</label>
+              <p class="text-gray-700"><%= manager.name %></p>
+            </div>
+            <div>
+              <label class="font-semibold">Email:</label>
+              <p class="text-gray-700"><%= manager.email %></p>
+            </div>
+            <div>
+              <label class="font-semibold">Phone:</label>
+              <p class="text-gray-700"><%= manager.mobile %></p>
+            </div>
+            <div>
+              <label class="font-semibold">Fuel Station:</label>
+              <p class="text-gray-700"><%= manager.fuelStation.name %></p>
+            </div>
+          </div>
+
+          <!-- Operational Timing -->
+          <div class="mt-6">
+            <label class="font-semibold">Operational Timing:</label>
+            <div class="flex space-x-4 mt-2">
+              <select id="opening-time" class="p-2 border rounded">
+                <option value="6:00 AM">6:00 AM</option>
+                <option value="7:00 AM">7:00 AM</option>
+                <option value="8:00 AM">8:00 AM</option>
+                <option value="9:00 AM" selected>9:00 AM</option>
+              </select>
+              <span>to</span>
+              <select id="closing-time" class="p-2 border rounded">
+                <option value="6:00 PM">6:00 PM</option>
+                <option value="7:00 PM">7:00 PM</option>
+                <option value="8:00 PM" selected>8:00 PM</option>
+                <option value="9:00 PM">9:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="save-timing" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

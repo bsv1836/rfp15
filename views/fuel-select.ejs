@@ -1,0 +1,67 @@
+<!-- views/fuel-select.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Select Fuel</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <style>
+    .fuel-select-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #f9f9f9;
+    }
+    .fuel-select-container h2 {
+      text-align: center;
+    }
+    label, select, input {
+      display: block;
+      width: 100%;
+      margin: 15px 0;
+    }
+    .total-price {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="fuel-select-container">
+    <h2>Select Fuel Type & Quantity</h2>
+    <form action="/user/confirm-order/<%= stationId %>" method="POST">
+      <label for="fuelType">Fuel Type:</label>
+      <select name="fuelType" id="fuelType" required onchange="updatePrice()">
+        <% inventory.forEach(item => { %>
+          <option value="<%= item.fuelType %>" data-price="<%= prices[item.fuelType] %>">
+            <%= item.fuelType %> - ₹<%= prices[item.fuelType] %>/L
+          </option>
+        <% }) %>
+      </select>
+      
+      
+
+      <label for="quantity">Quantity (Litres):</label>
+      <input type="number" name="quantity" id="quantity" required min="1" onchange="updatePrice()" />
+
+      <p class="total-price">Total Price: ₹<span id="totalPrice">0</span></p>
+
+      <button type="submit">Continue to Payment</button>
+    </form>
+  </div>
+
+  <script>
+    function updatePrice() {
+      const fuelSelect = document.getElementById("fuelType");
+      const quantity = parseFloat(document.getElementById("quantity").value) || 0;
+      const selectedOption = fuelSelect.options[fuelSelect.selectedIndex];
+      const pricePerLitre = parseFloat(selectedOption.getAttribute("data-price"));
+      const total = quantity * pricePerLitre;
+      document.getElementById("totalPrice").innerText = total.toFixed(2);
+    }
+  </script>
+</body>
+</html>

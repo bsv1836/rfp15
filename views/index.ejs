@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="title">Login</h2>
+
+        <form id="loginForm" method="POST" action="/login">
+            <div class="input-group">
+                <label>Email ID:</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <div class="input-group">
+                <label>Login as:</label>
+                <select name="role" required>
+                    <option value="user">User</option>
+                    <option value="manager">Manager</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+
+        <p>New user? <a href="/register">Create an account</a></p>
+        <p>New manager? <a href="/manager-register">Register here</a></p>
+    </div>
+</body>
+</html>
