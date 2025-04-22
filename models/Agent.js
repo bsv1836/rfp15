@@ -2,21 +2,20 @@ const mongoose = require('mongoose');
 
 const agentSchema = new mongoose.Schema({
   managerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Manager',
+    type: String,
     required: true
   },
   name: {
     type: String,
     required: true
   },
-  contactNumber: {
+  contactNumber: { // Renamed from 'contact' to 'contactNumber'
     type: String,
     required: true
   },
   status: {
     type: String,
-    enum: ['Available', 'Unavailable'],
+    enum: ['Available', 'Unavailable', 'Busy'],
     default: 'Available'
   }
 });

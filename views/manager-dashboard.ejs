@@ -75,6 +75,7 @@
               <th class="p-4 text-left">Customer</th>
               <th class="p-4 text-left">Fuel Type</th>
               <th class="p-4 text-left">Quantity</th>
+              <th class="p-4 text-left">Agent</th>
               <th class="p-4 text-left">Status</th>
               <th class="p-4 text-left">Actions</th>
             </tr>
@@ -86,6 +87,7 @@
                 <td class="p-4"><%= order.customerName %></td>
                 <td class="p-4"><%= order.fuelType %></td>
                 <td class="p-4"><%= order.quantity %>L</td>
+                <td class="p-4"><%= order.agentId ? order.agentId.name : 'Not Assigned' %></td>
                 <td class="p-4 <%= order.status === 'Pending' ? 'text-yellow-500' : order.status === 'In Progress' ? 'text-blue-500' : order.status === 'Confirmed' ? 'text-green-500' : 'text-red-500' %>">
                   <%= order.status %>
                 </td>
@@ -100,10 +102,7 @@
                       <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
                     </form>
                   <% } else if (order.status === 'Confirmed') { %>
-                    <form action="/manager/orders/<%= order._id %>/accept" method="POST" style="display:inline-block;">
-                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                      <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Accept</button>
-                    </form>
+                    <button onclick="document.getElementById('agents').scrollIntoView({ behavior: 'smooth' });" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Assign Agent</button>
                     <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                       <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
@@ -155,6 +154,27 @@
       <!-- Delivery Agents Section -->
       <section id="agents" class="mt-6">
         <h2 class="text-xl font-semibold">Delivery Agents</h2>
+      
+        <!-- Form to Add a New Agent -->
+        <div class="mb-4">
+          <h3 class="text-lg font-medium">Add New Agent</h3>
+          <form action="/manager/add-agent" method="POST" class="flex space-x-4 mt-2">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div>
+              <label for="name" class="block text-sm font-medium text-gray-700">Agent Name</label>
+              <input type="text" name="name" id="name" placeholder="Agent Name" required class="border p-2 rounded w-48" />
+            </div>
+            <div>
+              <label for="contactNumber" class="block text-sm font-medium text-gray-700">Contact Number</label>
+              <input type="text" name="contactNumber" id="contactNumber" placeholder="Contact Number" required class="border p-2 rounded w-48" />
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Agent</button>
+            </div>
+          </form>
+        </div>
+      
+        <!-- Agents Table -->
         <table class="w-full mt-4 bg-white shadow rounded-lg">
           <thead>
             <tr class="bg-gray-200">
@@ -165,25 +185,38 @@
             </tr>
           </thead>
           <tbody>
-            <% agents.forEach(agent => { %>
-              <tr class="border-t">
-                <td class="p-4"><%= agent.name %></td>
-                <td class="p-4"><%= agent.contact %></td>
-                <td class="p-4 <%= agent.status === 'Available' ? 'text-green-500' : agent.status === 'Not Available' ? 'text-red-500' : 'text-blue-500' %>"><%= agent.status %></td>
-                <td class="p-4">
-                  <% if (agent.status === 'Available') { %>
-                    <button class="bg-yellow-500 text-white px-3 py-1 rounded">Assign</button>
-                  <% } else { %>
-                    <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Assign</button>
-                  <% } %>
-                  <button class="bg-red-500 text-white px-3 py-1 rounded">Remove</button>
-                </td>
+            <% if (agents.length === 0) { %>
+              <tr>
+                <td colspan="4" class="p-4 text-center text-gray-500">No delivery agents found. Please add an agent.</td>
               </tr>
-            <% }); %>
+            <% } else { %>
+              <% agents.forEach(agent => { %>
+                <tr class="border-t">
+                  <td class="p-4"><%= agent.name %></td>
+                  <td class="p-4"><%= agent.contact || agent.contactNumber %></td>
+                  <td class="p-4 <%= agent.status === 'Available' ? 'text-green-500' : agent.status === 'Busy' ? 'text-blue-500' : 'text-red-500' %>"><%= agent.status %></td>
+                  <td class="p-4">
+                    <% if (agent.status === 'Available') { %>
+                      <% const confirmedOrder = orders.find(o => o.status === 'Confirmed' && !o.agentId); %>
+                      <form action="<%= confirmedOrder ? '/manager/assign-agent/' + confirmedOrder._id : '#' %>" method="POST" style="display:inline-block;">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <input type="hidden" name="agentId" value="<%= agent._id %>" />
+                        <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600" <%= !confirmedOrder ? 'disabled' : '' %>>Assign</button>
+                      </form>
+                    <% } else { %>
+                      <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Assign</button>
+                    <% } %>
+                    <form action="/manager/remove-agent/<%= agent._id %>" method="POST" style="display:inline-block;">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                      <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Remove</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } %>
           </tbody>
         </table>
       </section>
-
       <!-- Profile Settings Section -->
       <section id="profile" class="mt-6">
         <h2 class="text-xl font-semibold">Profile Settings</h2>

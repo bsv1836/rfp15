@@ -1,4 +1,3 @@
-// In managerRoutes.js
 const express = require('express');
 const router = express.Router();
 const Manager = require('../models/Manager');
@@ -82,8 +81,28 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
     const managerId = req.session.manager.id;
     const manager = await Manager.findById(managerId).lean();
 
-    const orders = await Order.find({ managerId: manager._id }).lean();
-    const agents = await Agent.find({ managerId: manager._id }).lean();
+    const queryManagerId = manager._id.toString();
+
+    const orders = await Order.find({ managerId: manager._id })
+      .populate('agentId')
+      .lean();
+    console.log('Orders:', orders);
+    const inProgressOrders = orders.filter(o => o.status === 'In Progress');
+    console.log('In Progress Orders:', inProgressOrders);
+
+    // Reset agents marked as Busy but not assigned to any In Progress orders
+    const agents = await Agent.find({ managerId: queryManagerId });
+    for (const agent of agents) {
+      if (agent.status === 'Busy') {
+        const isAssigned = inProgressOrders.some(order => order.agentId && order.agentId._id.toString() === agent._id.toString());
+        if (!isAssigned) {
+          agent.status = 'Available';
+          await agent.save();
+          console.log(`Reset agent ${agent._id} status to Available (no In Progress orders)`);
+        }
+      }
+    }
+
     const fuelInventory = await FuelInventory.find({ managerId: manager._id }).lean();
 
     const today = new Date().toISOString().split('T')[0];
@@ -100,7 +119,7 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
     res.render('manager-dashboard', {
       manager,
       orders,
-      agents,
+      agents: agents.map(agent => agent.toObject()), // Convert to plain object for rendering
       fuelInventory,
       stats
     });
@@ -112,7 +131,6 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
 
 // Route: POST /manager/confirm-order/:orderId
 router.post('/confirm-order/:orderId', isAuthenticated, async (req, res) => {
-  console.log('Handling /confirm-order/:orderId with orderId:', req.params.orderId);
   try {
     const order = await Order.findById(req.params.orderId);
     if (!order) {
@@ -132,16 +150,56 @@ router.post('/confirm-order/:orderId', isAuthenticated, async (req, res) => {
   }
 });
 
-// Route: POST /manager/orders/:id/accept
-router.post('/orders/:id/accept', isAuthenticated, async (req, res) => {
+// Route: POST /manager/assign-agent/:orderId
+router.post('/assign-agent/:orderId', isAuthenticated, async (req, res) => {
   try {
-    const orderId = req.params.id;
-    await Order.findByIdAndUpdate(orderId, { status: 'In Progress' });
-    req.flash('success', 'Order accepted and now in progress!');
+    const { orderId } = req.params;
+    const { agentId } = req.body;
+    console.log('Assigning agent to order:', { orderId, agentId });
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error('Order not found');
+    if (order.managerId.toString() !== req.session.manager.id) throw new Error('Unauthorized');
+    if (order.status !== 'Confirmed') throw new Error('Order must be confirmed before assigning an agent');
+    const agent = await Agent.findById(agentId);
+    if (!agent) throw new Error('Agent not found');
+    if (agent.status !== 'Available') throw new Error('Agent is not available');
+    order.agentId = agent._id;
+    order.status = 'In Progress';
+    agent.status = 'Busy';
+    await Promise.all([order.save(), agent.save()]);
+    console.log('Agent assigned successfully:', { agentId, orderId });
+    req.flash('success', `Agent ${agent.name} assigned to order ${orderId}!`);
     res.redirect('/manager/dashboard');
   } catch (err) {
-    console.error('Error accepting order:', err);
-    req.flash('error', 'Error accepting order: ' + err.message);
+    console.error('Error assigning agent:', err);
+    req.flash('error', 'Error assigning agent: ' + err.message);
+    res.redirect('/manager/dashboard');
+  }
+});
+
+// Route: POST /manager/remove-agent/:agentId
+router.post('/remove-agent/:agentId', isAuthenticated, async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+    const agent = await Agent.findById(agentId);
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
+    console.log('Removing agent:', { agentId, managerId: agent.managerId, sessionManagerId: req.session.manager.id });
+    if (agent.managerId !== req.session.manager.id) {
+      throw new Error('Unauthorized to remove this agent');
+    }
+    const assignedOrder = await Order.findOne({ agentId: agent._id, status: 'In Progress' });
+    if (assignedOrder) {
+      throw new Error('Cannot remove agent assigned to an in-progress order');
+    }
+    await Agent.deleteOne({ _id: agent._id });
+    console.log('Agent removed successfully:', agentId);
+    req.flash('success', 'Agent removed successfully!');
+    res.redirect('/manager/dashboard');
+  } catch (err) {
+    console.error('Error removing agent:', err);
+    req.flash('error', 'Error removing agent: ' + err.message);
     res.redirect('/manager/dashboard');
   }
 });
@@ -150,7 +208,19 @@ router.post('/orders/:id/accept', isAuthenticated, async (req, res) => {
 router.post('/orders/:id/reject', isAuthenticated, async (req, res) => {
   try {
     const orderId = req.params.id;
-    await Order.findByIdAndUpdate(orderId, { status: 'Rejected' });
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error('Order not found');
+    if (order.managerId.toString() !== req.session.manager.id) throw new Error('Unauthorized');
+    if (order.agentId) {
+      const agent = await Agent.findById(order.agentId);
+      if (agent) {
+        agent.status = 'Available';
+        await agent.save();
+      }
+    }
+    order.status = 'Rejected';
+    order.agentId = null;
+    await order.save();
     req.flash('success', 'Order rejected successfully!');
     res.redirect('/manager/dashboard');
   } catch (err) {
@@ -164,7 +234,17 @@ router.post('/orders/:id/reject', isAuthenticated, async (req, res) => {
 router.post('/orders/:id/deliver', isAuthenticated, async (req, res) => {
   try {
     const orderId = req.params.id;
-    await Order.findByIdAndUpdate(orderId, { status: 'Delivered' });
+    const order = await Order.findById(orderId);
+    if (!order) throw new Error('Order not found');
+    if (order.managerId.toString() !== req.session.manager.id) throw new Error('Unauthorized');
+    const agent = await Agent.findById(order.agentId);
+    if (agent) {
+      agent.status = 'Available';
+      await agent.save();
+    }
+    order.status = 'Delivered';
+    order.agentId = null;
+    await order.save();
     req.flash('success', 'Order marked as delivered!');
     res.redirect('/manager/dashboard');
   } catch (err) {
@@ -185,6 +265,36 @@ router.post('/inventory/:id/update', isAuthenticated, async (req, res) => {
   } catch (err) {
     console.error('Error updating inventory:', err);
     req.flash('error', 'Error updating inventory: ' + err.message);
+    res.redirect('/manager/dashboard');
+  }
+});
+
+// Route: POST /manager/add-agent
+router.post('/add-agent', isAuthenticated, async (req, res) => {
+  try {
+    const { name, contactNumber } = req.body;
+    const managerId = req.session.manager.id;
+
+    // Validate inputs
+    if (!name || !contactNumber) {
+      req.flash('error', 'Agent name and contact number are required.');
+      return res.redirect('/manager/dashboard');
+    }
+
+    // Create new agent
+    const newAgent = new Agent({
+      managerId,
+      name,
+      contactNumber,
+      status: 'Available'
+    });
+
+    await newAgent.save();
+    req.flash('success', 'Agent added successfully!');
+    res.redirect('/manager/dashboard');
+  } catch (err) {
+    console.error('Error adding agent:', err);
+    req.flash('error', 'Error adding agent: ' + err.message);
     res.redirect('/manager/dashboard');
   }
 });
