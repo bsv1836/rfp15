@@ -33,6 +33,7 @@
   <div class="fuel-select-container">
     <h2>Select Fuel Type & Quantity</h2>
     <form action="/user/confirm-order/<%= stationId %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <label for="fuelType">Fuel Type:</label>
       <select name="fuelType" id="fuelType" required onchange="updatePrice()">
         <% inventory.forEach(item => { %>
@@ -41,14 +42,9 @@
           </option>
         <% }) %>
       </select>
-      
-      
-
       <label for="quantity">Quantity (Litres):</label>
       <input type="number" name="quantity" id="quantity" required min="1" onchange="updatePrice()" />
-
       <p class="total-price">Total Price: ₹<span id="totalPrice">0</span></p>
-
       <button type="submit">Continue to Payment</button>
     </form>
   </div>

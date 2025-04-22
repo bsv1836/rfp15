@@ -11,6 +11,7 @@
         <h2 class="title">Login</h2>
 
         <form id="loginForm" method="POST" action="/login">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" /> <!-- Add this line -->
             <div class="input-group">
                 <label>Email ID:</label>
                 <input type="email" name="email" required>
@@ -19,7 +20,6 @@
                 <label>Password:</label>
                 <input type="password" name="password" required>
             </div>
-
             <div class="input-group">
                 <label>Login as:</label>
                 <select name="role" required>
@@ -27,7 +27,6 @@
                     <option value="manager">Manager</option>
                 </select>
             </div>
-
             <button type="submit" class="submit-btn">Login</button>
         </form>
 

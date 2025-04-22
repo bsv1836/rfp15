@@ -34,29 +34,29 @@
     }
   </style>
 </head>
-<body>
-  <div class="payment-container">
-    <h2>Confirm & Choose Payment</h2>
-
-    <div class="details">
-      <p><strong>Fuel Type:</strong> <%= fuelType %></p>
-      <p><strong>Quantity:</strong> <%= quantity %> L</p>
-      <p><strong>Base Price:</strong> ₹<%= basePrice %></p>
-      <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
-      <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
-      <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
+<body style="margin: 0; padding: 0; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;">
+  <% if (locals.error_msg) { %>
+    <div style="text-align: center; background-color: #f8d7da; color: red; padding: 10px; margin: 20px 0; border-radius: 5px; max-width: 600px; width: 100%;">
+      <%= locals.error_msg %>
     </div>
-
+  <% } %>
+  <div class="payment-container" style="max-width: 400px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <h2>Confirm & Choose Payment</h2>
+    <p><strong>Fuel Type:</strong> <%= fuelType %></p>
+    <p><strong>Quantity:</strong> <%= quantity %> L</p>
+    <p><strong>Base Price:</strong> ₹<%= basePrice.toFixed(2) %></p>
+    <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
+    <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
+    <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
     <form action="/user/place-order/<%= stationId %>" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <input type="hidden" name="fuelType" value="<%= fuelType %>" />
       <input type="hidden" name="quantity" value="<%= quantity %>" />
       <input type="hidden" name="totalAmount" value="<%= totalAmount %>" />
-
       <div class="method">
-        <label><input type="radio" name="paymentMethod" value="Online" required /> Pay Online</label><br />
-        <label><input type="radio" name="paymentMethod" value="COD" required /> Cash on Delivery</label>
+        <label><input type="radio" name="paymentMethod" value="Online Payment" required /> Pay Online</label><br />
+        <label><input type="radio" name="paymentMethod" value="Cash on Delivery" required /> Cash on Delivery</label>
       </div>
-
       <button type="submit">Confirm Order</button>
     </form>
   </div>
