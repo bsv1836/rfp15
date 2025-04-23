@@ -65,63 +65,67 @@
         </div>
       </div>
 
-      <!-- Orders Section -->
-      <section id="orders" class="mt-6">
-        <h2 class="text-xl font-semibold">Orders Management</h2>
-        <table class="w-full mt-4 bg-white shadow rounded-lg">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="p-4 text-left">Order ID</th>
-              <th class="p-4 text-left">Customer</th>
-              <th class="p-4 text-left">Fuel Type</th>
-              <th class="p-4 text-left">Quantity</th>
-              <th class="p-4 text-left">Agent</th>
-              <th class="p-4 text-left">Status</th>
-              <th class="p-4 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% orders.forEach(order => { %>
-              <tr class="border-t">
-                <td class="p-4"><%= order._id %></td>
-                <td class="p-4"><%= order.customerName %></td>
-                <td class="p-4"><%= order.fuelType %></td>
-                <td class="p-4"><%= order.quantity %>L</td>
-                <td class="p-4"><%= order.agentId ? order.agentId.name : 'Not Assigned' %></td>
-                <td class="p-4 <%= order.status === 'Pending' ? 'text-yellow-500' : order.status === 'In Progress' ? 'text-blue-500' : order.status === 'Confirmed' ? 'text-green-500' : 'text-red-500' %>">
-                  <%= order.status %>
-                </td>
-                <td class="p-4">
-                  <% if (order.status === 'Pending') { %>
-                    <form action="/manager/confirm-order/<%= order._id %>" method="POST" style="display:inline-block;">
-                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                      <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Confirm</button>
-                    </form>
-                    <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
-                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                      <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
-                    </form>
-                  <% } else if (order.status === 'Confirmed') { %>
-                    <button onclick="document.getElementById('agents').scrollIntoView({ behavior: 'smooth' });" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Assign Agent</button>
-                    <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
-                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                      <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
-                    </form>
-                  <% } else if (order.status === 'In Progress') { %>
-                    <form action="/manager/orders/<%= order._id %>/deliver" method="POST" style="display:inline-block;">
-                      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
-                      <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Deliver</button>
-                    </form>
-                  <% } else { %>
-                    <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Completed</button>
-                  <% } %>
-                </td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </section>
-
+<!-- Orders Section -->
+<section id="orders" class="mt-6">
+  <h2 class="text-xl font-semibold">Orders Management</h2>
+  <table class="w-full mt-4 bg-white shadow rounded-lg">
+    <thead>
+      <tr class="bg-gray-200">
+        <th class="p-4 text-left">Order ID and Delivery Address</th>
+        <th class="p-4 text-left">Customer</th>
+        <th class="p-4 text-left">Fuel Type</th>
+        <th class="p-4 text-left">Quantity</th>
+        <th class="p-4 text-left">Agent</th>
+        <th class="p-4 text-left">Status</th>
+        <th class="p-4 text-left">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% orders.forEach(order => { %>
+        <tr class="border-t">
+          <td class="p-4">
+            <div>
+              <span class="font-semibold">Order ID:</span> <%= order._id %><br>
+              <span class="text-sm text-gray-600">Address:</span> <span class="text-sm text-gray-600"><%= order.address %></span>
+            </div>
+          </td>
+          <td class="p-4"><%= order.customerName %></td>
+          <td class="p-4"><%= order.fuelType %></td>
+          <td class="p-4"><%= order.quantity %>L</td>
+          <td class="p-4"><%= order.agentId ? order.agentId.name : 'Not Assigned' %></td>
+          <td class="p-4 <%= order.status === 'Pending' ? 'text-yellow-500' : order.status === 'In Progress' ? 'text-blue-500' : order.status === 'Confirmed' ? 'text-green-500' : 'text-red-500' %>">
+            <%= order.status %>
+          </td>
+          <td class="p-4">
+            <% if (order.status === 'Pending') { %>
+              <form action="/manager/confirm-order/<%= order._id %>" method="POST" style="display:inline-block;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button type="submit" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Confirm</button>
+              </form>
+              <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
+              </form>
+            <% } else if (order.status === 'Confirmed') { %>
+              <button onclick="document.getElementById('agents').scrollIntoView({ behavior: 'smooth' });" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Assign Agent</button>
+              <form action="/manager/orders/<%= order._id %>/reject" method="POST" style="display:inline-block;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
+              </form>
+            <% } else if (order.status === 'In Progress') { %>
+              <form action="/manager/orders/<%= order._id %>/deliver" method="POST" style="display:inline-block;">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Deliver</button>
+              </form>
+            <% } else { %>
+              <button class="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Completed</button>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</section>
       <!-- Fuel Inventory Section -->
       <section id="inventory" class="mt-6">
         <h2 class="text-xl font-semibold">Fuel Inventory Management</h2>

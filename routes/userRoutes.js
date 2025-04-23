@@ -118,6 +118,7 @@ router.post('/confirm-order/:stationId', isAuthenticated, async (req, res) => {
       subtotal: subtotal.toFixed(2),
       serviceFee: serviceFee.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
+      csrfToken: req.csrfToken(), // Explicitly pass CSRF token
     });
   } catch (err) {
     console.error('Error in confirm-order:', err);
@@ -146,7 +147,7 @@ router.post('/place-order/:stationId', isAuthenticated, async (req, res) => {
   console.log('Handling /place-order/:stationId with stationId:', req.params.stationId);
   console.log('Request body:', req.body);
   const { stationId } = req.params;
-  const { fuelType, quantity, totalAmount, paymentMethod } = req.body;
+  const { fuelType, quantity, totalAmount, paymentMethod, address } = req.body;
   try {
     if (!req.session.user || !req.session.user.id) {
       throw new Error('User session invalid');
@@ -168,8 +169,9 @@ router.post('/place-order/:stationId', isAuthenticated, async (req, res) => {
       fuelType,
       quantity: parsedQuantity,
       paymentMethod,
+      address, // Added address field
       totalAmount: parsedAmount,
-      status: 'Pending', // Changed from 'Confirmed'
+      status: 'Pending',
       fuelStation: { managerId: stationId }
     });
     await newOrder.save();

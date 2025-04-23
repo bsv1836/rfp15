@@ -9,10 +9,11 @@ const orderSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   paymentMethod: { type: String, required: true },
   totalAmount: { type: Number, required: true },
+  address: { type: String, required: true }, // Added address field
   status: {
     type: String,
     enum: ["Pending", "Confirmed", "In Progress", "Delivered", "Rejected", "Cancelled"],
-    default: "Pending", // Changed from "Confirmed"
+    default: "Pending",
   },
   fuelStation: {
     managerId: { type: String, required: true }, // Changed to String to match usage

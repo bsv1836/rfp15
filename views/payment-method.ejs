@@ -28,6 +28,14 @@
     .method {
       margin-top: 20px;
     }
+    textarea {
+      width: 100%;
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      resize: vertical;
+    }
     button {
       margin-top: 20px;
       width: 100%;
@@ -42,17 +50,21 @@
   <% } %>
   <div class="payment-container" style="max-width: 400px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
     <h2>Confirm & Choose Payment</h2>
-    <p><strong>Fuel Type:</strong> <%= fuelType %></p>
-    <p><strong>Quantity:</strong> <%= quantity %> L</p>
-    <p><strong>Base Price:</strong> ₹<%= basePrice.toFixed(2) %></p>
-    <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
-    <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
-    <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
+    <div class="details">
+      <p><strong>Fuel Type:</strong> <%= fuelType %></p>
+      <p><strong>Quantity:</strong> <%= quantity %> L</p>
+      <p><strong>Base Price:</strong> ₹<%= basePrice.toFixed(2) %></p>
+      <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
+      <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
+      <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
+    </div>
     <form action="/user/place-order/<%= stationId %>" method="POST">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <input type="hidden" name="fuelType" value="<%= fuelType %>" />
       <input type="hidden" name="quantity" value="<%= quantity %>" />
       <input type="hidden" name="totalAmount" value="<%= totalAmount %>" />
+      <label for="address">Delivery Address:</label>
+      <textarea id="address" name="address" rows="4" required placeholder="Enter your delivery address"></textarea>
       <div class="method">
         <label><input type="radio" name="paymentMethod" value="Online Payment" required /> Pay Online</label><br />
         <label><input type="radio" name="paymentMethod" value="Cash on Delivery" required /> Cash on Delivery</label>
