@@ -3,74 +3,242 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Payment Method</title>
   <link rel="stylesheet" href="/assets/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .error-message {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+      font-size: 0.875rem;
+    }
     .payment-container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 30px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #f9f9f9;
+      max-width: 800px;
+      width: 100%;
+      padding: 1.5rem;
+      margin: 1rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
     h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a202c;
       text-align: center;
+      margin-bottom: 1rem;
+    }
+    .content-wrapper {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
+      margin-bottom: 1rem;
+    }
+    .left-half,
+    .right-half {
+      flex: 1;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 8px;
     }
     .details {
-      margin: 20px 0;
-      font-size: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #4a5568;
+    }
+    .details p {
+      margin: 0;
+      display: flex;
+      justify-content: space-between;
     }
     .details strong {
-      display: inline-block;
-      width: 150px;
+      color: #1a202c;
+      font-weight: 600;
     }
-    .method {
-      margin-top: 20px;
+    .right-half form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: 100%;
+    }
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1a202c;
     }
     textarea {
-      width: 100%;
-      margin: 15px 0;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.875rem;
       resize: vertical;
+      transition: border-color 0.3s ease;
+      flex-grow: 1;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 5px rgba(49, 130, 206, 0.2);
+    }
+    .payment-methods {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+    }
+    .payment-method-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 0.875rem;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .payment-method-btn.selected {
+      background: #e7f0ff;
+      border-color: #3182ce;
+      color: #3182ce;
+      font-weight: 600;
+    }
+    .payment-method-btn:hover {
+      background: #edf2f7;
     }
     button {
-      margin-top: 20px;
       width: 100%;
+      padding: 0.75rem;
+      background: #38a169;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    button:hover {
+      background: #2f855a;
+      transform: translateY(-2px);
+    }
+    @media (max-width: 600px) {
+      .payment-container {
+        padding: 1rem;
+        margin: 0.5rem;
+      }
+      h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+      }
+      .content-wrapper {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .left-half,
+      .right-half {
+        padding: 0.75rem;
+      }
+      .details {
+        gap: 0.25rem;
+        font-size: 0.75rem;
+      }
+      label,
+      textarea,
+      .payment-method-btn,
+      button {
+        font-size: 0.75rem;
+      }
+      textarea,
+      .payment-method-btn,
+      button {
+        padding: 0.5rem;
+      }
+      .payment-methods {
+        gap: 0.5rem;
+        padding: 0.25rem 0;
+      }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;">
+<body>
   <% if (locals.error_msg) { %>
-    <div style="text-align: center; background-color: #f8d7da; color: red; padding: 10px; margin: 20px 0; border-radius: 5px; max-width: 600px; width: 100%;">
+    <div class="error-message">
       <%= locals.error_msg %>
     </div>
   <% } %>
-  <div class="payment-container" style="max-width: 400px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+  <div class="payment-container">
     <h2>Confirm & Choose Payment</h2>
-    <div class="details">
-      <p><strong>Fuel Type:</strong> <%= fuelType %></p>
-      <p><strong>Quantity:</strong> <%= quantity %> L</p>
-      <p><strong>Base Price:</strong> ₹<%= basePrice.toFixed(2) %></p>
-      <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
-      <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
-      <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
-    </div>
-    <form action="/user/place-order/<%= stationId %>" method="POST">
+    <form action="/user/place-order/<%= stationId %>" method="POST" id="payment-form">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <input type="hidden" name="fuelType" value="<%= fuelType %>" />
       <input type="hidden" name="quantity" value="<%= quantity %>" />
       <input type="hidden" name="totalAmount" value="<%= totalAmount %>" />
-      <label for="address">Delivery Address:</label>
-      <textarea id="address" name="address" rows="4" required placeholder="Enter your delivery address"></textarea>
-      <div class="method">
-        <label><input type="radio" name="paymentMethod" value="Online Payment" required /> Pay Online</label><br />
-        <label><input type="radio" name="paymentMethod" value="Cash on Delivery" required /> Cash on Delivery</label>
+      <input type="hidden" name="paymentMethod" id="paymentMethod" value="" />
+      <div class="content-wrapper">
+        <div class="left-half">
+          <div class="details">
+            <p><strong>Fuel Type:</strong> <%= fuelType %></p>
+            <p><strong>Quantity:</strong> <%= quantity %> L</p>
+            <p><strong>Base Price:</strong> ₹<%= basePrice.toFixed(2) %></p>
+            <p><strong>Subtotal:</strong> ₹<%= subtotal %></p>
+            <p><strong>Service Fee (10%):</strong> ₹<%= serviceFee %></p>
+            <p><strong>Total Amount:</strong> ₹<%= totalAmount %></p>
+          </div>
+        </div>
+        <div class="right-half">
+          <div>
+            <label for="address">Delivery Address:</label>
+            <textarea id="address" name="address" rows="3" required placeholder="Enter your delivery address"></textarea>
+          </div>
+          <div class="payment-methods">
+            <div class="payment-method-btn" data-value="Online Payment">Pay Online</div>
+            <div class="payment-method-btn" data-value="Cash on Delivery">Cash on Delivery</div>
+          </div>
+        </div>
       </div>
       <button type="submit">Confirm Order</button>
     </form>
   </div>
+  <script>
+    const paymentButtons = document.querySelectorAll('.payment-method-btn');
+    const paymentInput = document.querySelector('#paymentMethod');
+    const form = document.querySelector('#payment-form');
+
+    paymentButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        paymentButtons.forEach(btn => btn.classList.remove('selected'));
+        button.classList.add('selected');
+        paymentInput.value = button.getAttribute('data-value');
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      if (!paymentInput.value) {
+        e.preventDefault();
+        alert('Please select a payment method.');
+      }
+    });
+  </script>
 </body>
 </html>

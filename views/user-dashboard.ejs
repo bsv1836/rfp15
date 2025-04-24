@@ -3,48 +3,198 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Dashboard</title>
   <link rel="stylesheet" href="/assets/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
     .dashboard {
+      max-width: 700px;
+      width: 100%;
+      padding: 1.5rem;
+      margin: 1rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .welcome-section {
       text-align: center;
-      padding: 30px;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-section h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-section p {
+      font-size: 0.875rem;
+      color: #718096;
+      margin-bottom: 1rem;
     }
     .order-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #007BFF;
+      padding: 0.6rem 1.5rem;
+      background: #3182ce;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
       cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .order-btn:hover {
+      background: #2b6cb0;
+      transform: translateY(-2px);
     }
     .order-history {
-      margin-top: 50px;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    .order-history h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 0.75rem;
+    }
+    .order-history p {
+      font-size: 0.875rem;
+      color: #718096;
+      text-align: center;
+      padding: 0.75rem;
+    }
+    .orders-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      table-layout: auto;
+    }
+    .orders-table th, .orders-table td {
+      padding: 0.75rem;
+      text-align: left;
+      font-size: 0.75rem;
+      color: #4a5568;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .orders-table th {
+      background: #f7fafc;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .orders-table td {
+      border-bottom: 1px solid #edf2f7;
+    }
+    .orders-table tr:last-child td {
+      border-bottom: none;
+    }
+    .orders-table tr:hover {
+      background: #f7fafc;
+    }
+    .status-pending {
+      color: #d69e2e;
+    }
+    .status-in-progress {
+      color: #3182ce;
+    }
+    .status-delivered {
+      color: #38a169;
+    }
+    .status-rejected {
+      color: #e53e3e;
+    }
+    @media (max-width: 600px) {
+      .dashboard {
+        padding: 1rem;
+        margin: 0.5rem;
+      }
+      .welcome-section {
+        padding: 1rem;
+      }
+      .welcome-section h1 {
+        font-size: 1.25rem;
+      }
+      .welcome-section p {
+        font-size: 0.75rem;
+      }
+      .order-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+      }
+      .order-history {
+        padding: 0.75rem;
+      }
+      .order-history h2 {
+        font-size: 1rem;
+      }
+      .orders-table th, .orders-table td {
+        font-size: 0.65rem;
+        padding: 0.5rem;
+      }
+    }
+    @media (max-width: 400px) {
+      .orders-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
     }
   </style>
 </head>
 <body>
   <div class="dashboard">
-    <h1>Welcome, <%= user.name %>!</h1>
-    <p>Order fuel with ease, from the station of your choice.</p>
-    <form action="/user/stations" method="GET">
-      <button class="order-btn">Place a New Order</button>
-    </form>
+    <div class="welcome-section">
+      <h1>Welcome, <%= user.name %>!</h1>
+      <p>Order fuel with ease, from the station of your choice.</p>
+      <form action="/user/stations" method="GET">
+        <button class="order-btn">Place a New Order</button>
+      </form>
+    </div>
 
     <div class="order-history">
       <h2>Your Past Orders</h2>
       <% if (orders.length === 0) { %>
         <p>No orders yet.</p>
       <% } else { %>
-        <ul>
-          <% orders.forEach(order => { %>
-            <li>
-              <strong><%= order.fuelType %></strong> - <%= order.quantity %>L -
-              <%= order.status %>
-            </li>
-          <% }) %>
-        </ul>
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Fuel Type</th>
+              <th>Quantity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+              <tr>
+                <td><%= order.fuelType %></td>
+                <td><%= order.quantity %>L</td>
+                <td class="status-<%= order.status.toLowerCase().replace(' ', '-') %>">
+                  <%= order.status %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
       <% } %>
     </div>
   </div>

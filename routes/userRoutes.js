@@ -16,20 +16,43 @@ function isAuthenticated(req, res, next) {
   next();
 }
 
+// User Registration Page
+router.get('/register', (req, res) => {
+  res.render('register', {
+    csrfToken: req.csrfToken(),
+    error_msg: req.flash('error')
+  });
+});
+
 // User Registration Route
 router.post('/register', async (req, res) => {
-  const { name, email, password, mobile } = req.body;
+  const { name, email, password, mobile, confirm_password } = req.body;
   try {
+    // Validate password match
+    if (password !== confirm_password) {
+      req.flash('error', 'Passwords do not match');
+      return res.redirect('/user/register');
+    }
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).send('User already registered');
+    if (existingUser) {
+      req.flash('error', 'User already registered');
+      return res.redirect('/user/register');
+    }
+
+    // Hash password and create new user
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ name, email, mobile, password: hashedPassword });
     await newUser.save();
-    req.session.user = newUser; // Auto-login
+
+    // Auto-login
+    req.session.user = { id: newUser._id, name: newUser.name };
     res.redirect('/user/dashboard');
   } catch (error) {
     console.error('Error registering user:', error);
-    res.status(500).send('Error registering user');
+    req.flash('error', 'Error registering user');
+    res.redirect('/user/register');
   }
 });
 
@@ -45,11 +68,15 @@ router.post('/login', async (req, res) => {
       if (user && await bcrypt.compare(password, user.password)) {
         req.session.user = { id: user._id, name: user.name };
         res.redirect('/user/dashboard');
-      } else res.status(401).send('Invalid user credentials');
+      } else {
+        req.flash('error', 'Invalid user credentials');
+        res.redirect('/');
+      }
     }
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).send('Login failed');
+    req.flash('error', 'Login failed');
+    res.redirect('/');
   }
 });
 
@@ -60,7 +87,8 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
     res.render('user-dashboard', { user: req.session.user, orders });
   } catch (err) {
     console.error('Error fetching orders:', err);
-    res.status(500).send('Error loading dashboard');
+    req.flash('error', 'Error loading dashboard');
+    res.redirect('/');
   }
 });
 
@@ -71,7 +99,8 @@ router.get('/stations', isAuthenticated, async (req, res) => {
     res.render('station-select', { stations });
   } catch (err) {
     console.error('Error loading stations:', err);
-    res.status(500).send('Failed to load fuel stations');
+    req.flash('error', 'Failed to load fuel stations');
+    res.redirect('/user/dashboard');
   }
 });
 
@@ -85,10 +114,11 @@ router.get('/select-station/:stationId', isAuthenticated, async (req, res) => {
     ]);
     const prices = {};
     fuelPrices.forEach(item => prices[item.fuelType] = item.price);
-    res.render('fuel-select', { inventory, stationId, prices });
+    res.render('fuel-select', { inventory, stationId, prices, csrfToken: req.csrfToken() });
   } catch (err) {
     console.error('Error fetching data:', err);
-    res.status(500).send('Could not load fuel options');
+    req.flash('error', 'Could not load fuel options');
+    res.redirect('/user/stations');
   }
 });
 
@@ -103,7 +133,8 @@ router.post('/confirm-order/:stationId', isAuthenticated, async (req, res) => {
     const fuelData = await GlobalFuelPrice.findOne({ fuelType });
     if (!fuelData || !fuelData.price) {
       console.log('Global fuel price not set for:', fuelType);
-      return res.status(400).send('Fuel price not available');
+      req.flash('error', 'Fuel price not available');
+      return res.redirect(`/user/select-station/${stationId}`);
     }
     const basePrice = fuelData.price;
     const subtotal = quantity * basePrice;
@@ -118,11 +149,12 @@ router.post('/confirm-order/:stationId', isAuthenticated, async (req, res) => {
       subtotal: subtotal.toFixed(2),
       serviceFee: serviceFee.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
-      csrfToken: req.csrfToken(), // Explicitly pass CSRF token
+      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error('Error in confirm-order:', err);
-    res.status(500).send('Something went wrong');
+    req.flash('error', 'Something went wrong');
+    res.redirect(`/user/select-station/${stationId}`);
   }
 });
 
@@ -138,7 +170,8 @@ router.get('/orders', isAuthenticated, async (req, res) => {
     res.render('user-orders', { orders, user: req.session.user });
   } catch (err) {
     console.error('Error fetching orders:', err);
-    res.status(500).send('Failed to load order history');
+    req.flash('error', 'Failed to load order history');
+    res.redirect('/user/dashboard');
   }
 });
 
@@ -169,7 +202,7 @@ router.post('/place-order/:stationId', isAuthenticated, async (req, res) => {
       fuelType,
       quantity: parsedQuantity,
       paymentMethod,
-      address, // Added address field
+      address,
       totalAmount: parsedAmount,
       status: 'Pending',
       fuelStation: { managerId: stationId }

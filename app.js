@@ -1,13 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const session = require('express-session'); // Single declaration
+const session = require('express-session');
 const path = require('path');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
-const csrf = require('csurf'); // Add CSRF
-const flash = require('connect-flash'); // Add flash
+const csrf = require('csurf');
+const flash = require('connect-flash');
 
 dotenv.config();
 const GlobalFuelPrice = require('./models/GlobalFuelPrice');
@@ -21,12 +20,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Session Configuration (single instance)
+// Session Configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_secret_key', // Use env variable or fallback
+  secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set to true if using HTTPS
+  cookie: { secure: false }
 }));
 
 // CSRF and Flash Middleware
@@ -56,7 +55,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.get('/', (req, res) => res.render('index'));
-app.get('/register', (req, res) => res.render('register'));
+
 app.get('/manager-register', (req, res) => res.render('manager-register'));
 
 app.post('/manager-register', async (req, res) => {
@@ -72,12 +71,20 @@ app.post('/manager-register', async (req, res) => {
   } = req.body;
 
   if (password !== confirmPassword) {
-    return res.status(400).send('Passwords do not match');
+    return res.render('manager-register', {
+      csrfToken: req.csrfToken(),
+      error_msg: 'Passwords do not match'
+    });
   }
 
   try {
     const existingManager = await Manager.findOne({ email });
-    if (existingManager) return res.status(400).send('Manager already exists');
+    if (existingManager) {
+      return res.render('manager-register', {
+        csrfToken: req.csrfToken(),
+        error_msg: 'Manager already exists'
+      });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -103,7 +110,10 @@ app.post('/manager-register', async (req, res) => {
     res.redirect('/manager/dashboard');
   } catch (err) {
     console.error('Error registering manager:', err);
-    res.status(500).send('Manager registration failed');
+    res.render('manager-register', {
+      csrfToken: req.csrfToken(),
+      error_msg: 'Manager registration failed'
+    });
   }
 });
 
@@ -128,7 +138,10 @@ app.post('/login', async (req, res) => {
         };
         return res.redirect('/manager/dashboard');
       } else {
-        return res.status(401).send('Invalid manager credentials.');
+        return res.render('index', {
+          csrfToken: req.csrfToken(),
+          error_msg: 'Invalid manager credentials'
+        });
       }
     } else if (role === 'user') {
       const user = await User.findOne({ email });
@@ -136,14 +149,23 @@ app.post('/login', async (req, res) => {
         req.session.user = { id: user._id, name: user.name };
         return res.redirect('/user/dashboard');
       } else {
-        return res.status(401).send('Invalid user credentials.');
+        return res.render('index', {
+          csrfToken: req.csrfToken(),
+          error_msg: 'Invalid user credentials'
+        });
       }
     } else {
-      return res.status(400).send('Invalid role.');
+      return res.render('index', {
+        csrfToken: req.csrfToken(),
+        error_msg: 'Invalid role'
+      });
     }
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).send('Error during login.');
+    res.render('index', {
+      csrfToken: req.csrfToken(),
+      error_msg: 'Error during login'
+    });
   }
 });
 
@@ -161,31 +183,6 @@ app.get('/logout', (req, res) => {
 // 404 Handler
 app.use((req, res) => {
   res.status(404).send('404 - Page Not Found');
-});
-
-// User Registration (move to avoid duplicate)
-app.post('/register', async (req, res) => {
-  const { fullName, email, mobile, password, confirmPassword } = req.body;
-  if (password !== confirmPassword) {
-    return res.status(400).send('Passwords do not match');
-  }
-  try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).send('User already exists');
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      name: fullName,
-      email,
-      mobile,
-      password: hashedPassword,
-    });
-    await newUser.save();
-    req.session.user = { id: newUser._id, name: newUser.name };
-    res.redirect('/user/dashboard');
-  } catch (err) {
-    console.error('Error registering user:', err);
-    res.status(500).send('Registration failed');
-  }
 });
 
 // Start Server

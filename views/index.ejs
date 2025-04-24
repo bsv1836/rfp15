@@ -1,17 +1,157 @@
+<!-- views/index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login</title>
     <link rel="stylesheet" href="/assets/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1a202c;
+        }
+        .input-group input[type="email"],
+        .input-group input[type="password"],
+        .input-group select {
+            padding: 0.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            transition: border-color 0.3s ease;
+        }
+        .input-group input[type="email"]:focus,
+        .input-group input[type="password"]:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 5px rgba(49, 130, 206, 0.2);
+        }
+        .submit-btn {
+            padding: 0.5rem;
+            background: #3182ce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .submit-btn:hover {
+            background: #2b6cb0;
+            transform: translateY(-2px);
+        }
+        .register-links {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        .register-links p {
+            margin: 0.25rem 0;
+        }
+        .register-links a {
+            color: #3182ce;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .register-links a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 500px) {
+            .container {
+                padding: 0.75rem;
+                margin: 0.25rem;
+            }
+            .title {
+                font-size: 1.25rem;
+                margin-bottom: 0.75rem;
+            }
+            .error-message {
+                font-size: 0.65rem;
+                padding: 0.4rem;
+                margin-bottom: 0.5rem;
+            }
+            .input-group label,
+            .input-group input,
+            .input-group select {
+                font-size: 0.65rem;
+            }
+            .input-group input,
+            .input-group select {
+                padding: 0.3rem;
+            }
+            .submit-btn {
+                padding: 0.4rem;
+                font-size: 0.65rem;
+            }
+            .register-links {
+                font-size: 0.65rem;
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2 class="title">Login</h2>
 
+        <% if (locals.error_msg) { %>
+            <div class="error-message">
+                <%= locals.error_msg %>
+            </div>
+        <% } %>
+
         <form id="loginForm" method="POST" action="/login">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>" /> <!-- Add this line -->
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
             <div class="input-group">
                 <label>Email ID:</label>
                 <input type="email" name="email" required>
@@ -30,8 +170,10 @@
             <button type="submit" class="submit-btn">Login</button>
         </form>
 
-        <p>New user? <a href="/register">Create an account</a></p>
-        <p>New manager? <a href="/manager-register">Register here</a></p>
+        <div class="register-links">
+            <p>New user? <a href="/user/register">Create an account</a></p>
+            <p>New manager? <a href="/manager-register">Register here</a></p>
+        </div>
     </div>
 </body>
 </html>
